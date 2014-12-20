@@ -18,7 +18,9 @@
       table{ width: 100%; }
       table tr td{ vertical-align: top; }
 
-      .colorIndicator{ display: block; width: 150px; height: 10px; background-color: #ccc; margin: 10px 0; }
+      .colorIndicator{ display: block; width: 150px; height: 8px; margin: 10px 0; }
+      #myTime .colorIndicator{ background-color: rgb(191, 7, 62); }
+      #clientTime .colorIndicator{ background-color: rgb(107, 191, 23); }
     </style>
   </head>
   <body>
@@ -27,7 +29,7 @@
       <tr>
         <td id="myTime">
           <h2>You</h2>
-          <!-- <span class="colorIndicator"></span> -->
+          <span class="colorIndicator"></span>
 
           <input type="number" value="8" name="fromMine" /><br>
           <input type="number" value="17" name="toMine" /><br>
@@ -41,7 +43,7 @@
 
         <td id="clientTime">
           <h2>Client</h2>
-          <!-- <span class="colorIndicator"></span> -->
+          <span class="colorIndicator"></span>
 
           <input type="number" value="8" name="fromClient" /><br>
           <input type="number" value="17" name="toClient" /><br>

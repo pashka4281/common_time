@@ -81,9 +81,8 @@ $(function(){
 
   // My Time:
   $('.zoneSelector[name="myTime"]').bind('change', function(){
-    // console.log( $(this).val() )
     var angle = -($(this).val()) * diffAngleHour;
-    rotateCircle(angle, innerData);
+    rotateCircle(angle, outerData);
   }).trigger('change')
 
   $('input[name="fromMine"').bind('input', function(){
@@ -97,6 +96,11 @@ $(function(){
   })
 
   // Client Time:
+  $('.zoneSelector[name="clientTime"]').bind('change', function(){
+    var angle = -($(this).val()) * diffAngleHour;
+    rotateCircle(angle, innerData);
+  }).trigger('change')
+
   var fromClientInput = $('input[name="fromClient"').bind('input', function(){
     timeFromClient = $(this).val();
     updateVal()
@@ -106,9 +110,6 @@ $(function(){
     timeToClient = $(this).val();
     updateVal()
   })
-
-  
-  // var angle = diffAngleHour;
 
   function rotateCircle(angle, circleData){
     circleData[0].animate({ transform: ['R'+angle+', '+ 300 +', ' + 300] }, 1300, "elastic")  // CircleData[0] -- marks
