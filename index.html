@@ -9,49 +9,54 @@
     <script src="./jquery-2.1.1.min.js"></script>
     <script src="./main.js"></script>
     <style media="screen">
-      #chart {
-        height: 600px;
-        margin: 0 auto;
-        width: 600px;
-      }
-      .zoneSelector{ width: 150px; }
+      body{ padding: 0; margin: 0; font-family: 'Open Sans'; background: #EFEFEF; }
+      #myTime, #clientTime{ text-align: center; }
+      #chart { height: 600px; margin: 0 auto; width: 600px; }
+      #wrapper{ padding: 0 40px; }
+      .zoneSelector{ width: 150px; display: block; margin: 10px auto; }
       table{ width: 100%; }
       table tr td{ vertical-align: top; }
 
-      .colorIndicator{ display: block; width: 150px; height: 8px; margin: 10px 0; }
-      #myTime .colorIndicator{ background-color: rgb(191, 7, 62); }
-      #clientTime .colorIndicator{ background-color: rgb(107, 191, 23); }
+      img{ border: 8px solid; border-radius: 500px; padding: 10px; }
+      #myTime img{ border-color: rgb(107, 191, 23); background: #235E1C; }
+      #clientTime img{ border-color: rgb(191, 7, 62); background: #66001F; }
+      input{ margin-bottom: 10px; }
     </style>
   </head>
   <body>
 
-    <table>
-      <tr>
-        <td id="myTime">
-          <h2>You</h2>
-          <span class="colorIndicator"></span>
+    <div id="wrapper">
+      <table>
+        <tr>
+          <td id="myTime">
+            <h2>You</h2>
+            <img src="freelancer.png">
 
-          <input type="number" value="8" name="fromMine" /><br>
-          <input type="number" value="17" name="toMine" /><br>
+            <select class="zoneSelector" name="myTime"></select>
 
-          <select class="zoneSelector" name="myTime"></select>
-        </td>
+            <input type="number" value="8" name="fromMine" /><br>
+            <input type="number" value="17" name="toMine" /><br>
 
-        <td>
-          <div id="chart"></div>
-        </td>
+            <!-- <input type="email" name="email_freelancer" /><br> -->
+          </td>
 
-        <td id="clientTime">
-          <h2>Client</h2>
-          <span class="colorIndicator"></span>
+          <td>
+            <div id="chart"></div>
+          </td>
 
-          <input type="number" value="8" name="fromClient" /><br>
-          <input type="number" value="17" name="toClient" /><br>
-        
-          <select class="zoneSelector" name="clientTime"></select>
-        </td>
-      </tr>
-    </table>
+          <td id="clientTime">
+            <h2>Client</h2>
+            <img src="client.png">
+
+            <select class="zoneSelector" name="clientTime"></select>
+
+            <input type="number" value="8" name="fromClient" /><br>
+            <input type="number" value="17" name="toClient" /><br>
+          </td>
+        </tr>
+      </table>
+    </div>
+
     
 
 
