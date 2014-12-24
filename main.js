@@ -46,20 +46,8 @@ $(function(){
     return { path: path, stroke: color };
   };
 
-  // OUTER (MY TIME)
-  var timeFromMine      = 8;
-  var timeToMine        = 17;
-  var myTime            = r.path().attr(param).attr({arc: [timeFromMine, timeToMine, R.outer]});
-  var myTimeRotateAngle = 0;
-  var outerData         = drawPoints(R.outer, total, 3, true, myTime); // drawing "Fat" points
-                          drawPoints(R.outer, total * 4, 1, false);    // drawing "thin" points
-  
-  
-
-  totLen = myTime.getTotalLength();
-
-  var buildKnob = function(timeAt, R){
-    var knobInitialCoords = getCircleCoords(timeFromMine, R);
+  var createKnob = function(timeAt, R){
+    var knobInitialCoords = getCircleCoords(timeAt, R);
     var knob = r.circle(knobInitialCoords[0], knobInitialCoords[1], 10).attr({ fill: "rgba(226, 226, 226, 0.14)", cursor: 'pointer' })
       .hover(
         function(){ this.animate({fill: "#f00"}, 200, ">") },
@@ -68,45 +56,62 @@ $(function(){
     return knob;
   }
 
-  var pMineFrom = buildKnob(timeFromMine, R.outer);
-  var pMineTo = buildKnob(timeToMine, R.outer);
-
-  outerData[0].push(pMineFrom);
-  outerData[0].push(pMineTo);
-
-
-
-
-  // circular "way" path used to drive knob controls on it, which could be draggable only within it's shape
-  var myTimePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 300, cy: 300, r: R.outer}}), 'r90' ) ).toBack()
-  var totLen = myTimePath.getTotalLength()
-
+  // called each time when knob is moved by user
   var knobMoved = function (x, y, wayPath, knob) {
+    var totLen    = wayPath.getTotalLength()
     var svgOffset = $('svg').offset(),
     mousePT = {x: x - svgOffset.left, y: y - svgOffset.top }
 
     // performing angle shifting:
     var angleMod = ( (Raphael.angle( mousePT.x, mousePT.y, 300, 300 ) - myTimeRotateAngle) % 360 )
     var angle    = (angleMod < 0 ? 360 + angleMod : angleMod) / 360; // in percents (from 0.0 to 1.0) where 1.0 means 360 deg
+
+    var dAngle = 1 / 24 / 4; // angle difference between points
+    angle = parseInt(angle / dAngle) * dAngle
     var knobPos  = wayPath.getPointAtLength( (angle * totLen) % totLen ); // Using angle, find a point along the path
+    
     knob.attr({cx: knobPos.x, cy: knobPos.y});
   };
 
+  // *****************************
+  // ****** OUTER (MY TIME) ******
+  // *****************************
+  var timeFromMine      = 8;
+  var timeToMine        = 17;
+  var myTime            = r.path().attr(param).attr({arc: [timeFromMine, timeToMine, R.outer]});
+  var myTimeRotateAngle = 0;
+  var outerData         = drawPoints(R.outer, total, 3, true, myTime); // drawing "Fat" points
+                          drawPoints(R.outer, total * 4, 1, false);    // drawing "thin" points
+
+  var pMineFrom = createKnob(timeFromMine, R.outer);
+  var pMineTo   = createKnob(timeToMine, R.outer);
+
+  outerData[0].push(pMineFrom);
+  outerData[0].push(pMineTo);
+
+  // circular "way" path used to drive knob controls on it, which could be draggable only within it's shape
+  // it's being used only as a trajectory, so it should not be visible:
+  var myTimePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 300, cy: 300, r: R.outer,}}), 'r90' ) ).hide()
+
   // dx, dy - difference between current coordinates and prev. ones; x, y - mouse cursor position
   pMineTo.drag(function(dx, dy, x, y){ knobMoved(x, y, myTimePath, this) });
-
-
+  // *****************************
+  // *********** END *************
+  // *****************************
 
 
 
 
   
-
-  // INNER (CLIENT TIME)
-  var timeFromClient = 8, timeToClient = 17;
-  var clientTime  = r.path().attr(param).attr({arc: [timeFromClient, timeToClient, R.inner]});
-  var innerData   = drawPoints(R.inner, total, 3, true, clientTime); // drawing "Fat" points
-                    drawPoints(R.inner, total * 4, 1, false);        // drawing "thin" points
+  // *********************************
+  // ****** Inner (Client TIME) ******
+  // *********************************
+ var timeFromClient        = 8;
+ var timeToClient          = 17;
+ var clientTime            = r.path().attr(param).attr({arc: [timeFromClient, timeToClient, R.inner]});
+ var clientTimeRotateAngle = 0;
+ var innerData             = drawPoints(R.inner, total, 3, true, clientTime); // drawing "Fat" points
+                             drawPoints(R.inner, total * 4, 1, false);        // drawing "thin" points
   
 
   function drawPoints(R, total, radius, drawText, handle) {
