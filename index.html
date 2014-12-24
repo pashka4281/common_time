@@ -9,15 +9,23 @@
     <script src="./jquery-2.1.1.min.js"></script>
     <script src="./main.js"></script>
     <style media="screen">
-      body{ padding: 0; margin: 0; font-family: 'Open Sans'; background: #EFEFEF; }
+      body{
+        padding: 0;
+        margin: 0;
+        font-family: 'Open Sans';
+        /*background: #EFEFEF;
+        background: url('1822634.jpg') no-repeat center;
+        -webkit-background-size: cover;
+        background-size: cover;*/
+      }
       #myTime, #clientTime{ text-align: center; }
-      #chart { height: 600px; margin: 0 auto; width: 600px; }
+      #chart { height: 600px; margin: 0 auto; width: 600px; border-radius: 500px; }
       #wrapper{ padding: 0 40px; }
       .zoneSelector{ width: 150px; display: block; margin: 10px auto; }
       table{ width: 100%; }
       table tr td{ vertical-align: top; }
 
-      img{ border: 8px solid; border-radius: 500px; padding: 10px; }
+      img{ border: 8px solid; border-radius: 500px; }
       #myTime img{ border-color: #7BBF37; background: #235E1C; }
       #clientTime img{ border-color: #BF073E; background: #66001F; }
       input{ margin-bottom: 4px; display: block; width: 100%; }
@@ -29,40 +37,44 @@
     <div id="wrapper">
       <table>
         <tr>
-          <td id="myTime">
-            <h2>Worker</h2>
-            <img src="freelancer.png" default-src="freelancer.png">
-            <select class="zoneSelector" name="myTime"></select>
-            <input type="email" placeholder="Enter email" />
+          <td>
+            <div id="myTime">
+              <h2>Worker</h2>
+              <img src="freelancer.png" default-src="freelancer.png">
+              <select class="zoneSelector" name="myTime"></select>
+              <input type="email" placeholder="Enter email" />
 
-            <label>
-              From:
-              <input type="number" value="8" name="fromMine" />
-            </label>
-            <label>
-              To:
-              <input type="number" value="17" name="toMine" />
-            </label>
+              <label>
+                From:
+                <input type="number" value="8" name="fromMine" />
+              </label>
+              <label>
+                To:
+                <input type="number" value="17" name="toMine" />
+              </label>
+            </div>
           </td>
 
           <td>
             <div id="chart"></div>
           </td>
 
-          <td id="clientTime">
-            <h2>Client</h2>
-            <img src="client.png" default-src="client.png">
-            <select class="zoneSelector" name="clientTime"></select>
-            <input type="email" placeholder="Enter email" />
+          <td>
+            <div id="clientTime">
+              <h2>Client</h2>
+              <img src="client.png" default-src="client.png">
+              <select class="zoneSelector" name="clientTime"></select>
+              <input type="email" placeholder="Enter email" />
 
-            <label>
-              From:
-              <input type="number" value="8" name="fromClient" />
-            </label>
-            <label>
-              To:
-              <input type="number" value="17" name="toClient" />
-            </label>
+              <label>
+                From:
+                <input type="number" value="8" name="fromClient" />
+              </label>
+              <label>
+                To:
+                <input type="number" value="17" name="toClient" />
+              </label>
+            </div>
           </td>
         </tr>
       </table>

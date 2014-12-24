@@ -17,46 +17,97 @@ $(function(){
     R         = { inner: 190, outer: 250 },
     param     = { stroke: "#fff", "stroke-width": 8 },
     hash      = document.location.hash,
-    // init      = true,
+    init      = true,
     total     = 24;
 
   var diffAngleHour   = 360 / total;
   var diffAngleQuater = 360 / total / 4;
   r.circle(300, 300, 2) // marking the center of circles
 
+
+  function getCircleCoords(angle, R){
+    var alpha = diffAngleHour * angle,
+      a = (90 - alpha) * Math.PI / 180,
+      x = 300 + R * Math.cos(a),
+      y = 300 - R * Math.sin(a);
+    return [x, y]
+  }
+
   // Custom attribute function
   r.customAttributes.arc = function(from, to, R) {
     // arc start points:
-    var alpha1 = diffAngleHour * from,
-      a1 = (90 - alpha1) * Math.PI / 180,
-      x1 = 300 + R * Math.cos(a1),
-      y1 = 300 - R * Math.sin(a1);
+    x1y1 = getCircleCoords(from, R);
+    x2y2 = getCircleCoords(to, R);
 
-    // arc end points:
-    var alpha2 = diffAngleHour * to,
-      a2 = (90 - alpha2) * Math.PI / 180,
-      x2 = 300 + R * Math.cos(a2),
-      y2 = 300 - R * Math.sin(a2);
-
-      // console.log(color)
     var color = "hsb(".concat(Math.round(R) / 200, ",", to / total, ", .75)");
 
-    var path = [["M", x1, y1], ["A", R, R, 0, +((alpha2 -alpha1) > 180), 1, x2, y2]];
+    var alpha1 = diffAngleHour * from, alpha2 = diffAngleHour * to;
+    var path = [["M", x1y1[0], x1y1[1]], ["A", R, R, 0, +((alpha2 -alpha1) > 180), 1, x2y2[0], x2y2[1] ]];
     return { path: path, stroke: color };
   };
 
   // OUTER (MY TIME)
-  var timeFromMine = 8, timeToMine = 17;
-  var myTime      = r.path().attr(param).attr({arc: [timeFromMine, timeToMine, R.outer]});
-  var outerData   = drawPoints(R.outer, total, 3, true, myTime); // drawing "Fat" points
-                    drawPoints(R.outer, total * 4, 1, false);    // drawing "thin" points
+  var timeFromMine      = 8;
+  var timeToMine        = 17;
+  var myTime            = r.path().attr(param).attr({arc: [timeFromMine, timeToMine, R.outer]});
+  var myTimeRotateAngle = 0;
+  var outerData         = drawPoints(R.outer, total, 3, true, myTime); // drawing "Fat" points
+                          drawPoints(R.outer, total * 4, 1, false);    // drawing "thin" points
+  
+  
+
+  totLen = myTime.getTotalLength();
+
+  var buildKnob = function(timeAt, R){
+    var knobInitialCoords = getCircleCoords(timeFromMine, R);
+    var knob = r.circle(knobInitialCoords[0], knobInitialCoords[1], 10).attr({ fill: "rgba(226, 226, 226, 0.14)", cursor: 'pointer' })
+      .hover(
+        function(){ this.animate({fill: "#f00"}, 200, ">") },
+        function(){ this.animate({fill: "#fff"}, 200, ">")}
+      )
+    return knob;
+  }
+
+  var pMineFrom = buildKnob(timeFromMine, R.outer);
+  var pMineTo = buildKnob(timeToMine, R.outer);
+
+  outerData[0].push(pMineFrom);
+  outerData[0].push(pMineTo);
+
+
+
+
+  // circular "way" path used to drive knob controls on it, which could be draggable only within it's shape
+  var myTimePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 300, cy: 300, r: R.outer}}), 'r90' ) ).toBack()
+  var totLen = myTimePath.getTotalLength()
+
+  var knobMoved = function (x, y, wayPath, knob) {
+    var svgOffset = $('svg').offset(),
+    mousePT = {x: x - svgOffset.left, y: y - svgOffset.top }
+
+    // performing angle shifting:
+    var angleMod = ( (Raphael.angle( mousePT.x, mousePT.y, 300, 300 ) - myTimeRotateAngle) % 360 )
+    var angle    = (angleMod < 0 ? 360 + angleMod : angleMod) / 360; // in percents (from 0.0 to 1.0) where 1.0 means 360 deg
+    var knobPos  = wayPath.getPointAtLength( (angle * totLen) % totLen ); // Using angle, find a point along the path
+    knob.attr({cx: knobPos.x, cy: knobPos.y});
+  };
+
+  // dx, dy - difference between current coordinates and prev. ones; x, y - mouse cursor position
+  pMineTo.drag(function(dx, dy, x, y){ knobMoved(x, y, myTimePath, this) });
+
+
+
+
+
+
+  
 
   // INNER (CLIENT TIME)
   var timeFromClient = 8, timeToClient = 17;
   var clientTime  = r.path().attr(param).attr({arc: [timeFromClient, timeToClient, R.inner]});
   var innerData   = drawPoints(R.inner, total, 3, true, clientTime); // drawing "Fat" points
                     drawPoints(R.inner, total * 4, 1, false);        // drawing "thin" points
-
+  
 
   function drawPoints(R, total, radius, drawText, handle) {
     var color     = "hsb(".concat(Math.round(R) / 200, ", 1, .75)");
@@ -70,8 +121,8 @@ $(function(){
         x = 300 + R * Math.cos(a),
         y = 300 - R * Math.sin(a);
       if(drawText){
-        labelX = 300 + (R + 17) * Math.cos(a);
-        labelY = 300 - (R + 17) * Math.sin(a);
+        labelX = 300 + (R + 20) * Math.cos(a);
+        labelY = 300 - (R + 20) * Math.sin(a);
         labelsSet.push(r.text(labelX, labelY, "" + (value) + ":00"));
       }
 
@@ -85,7 +136,13 @@ $(function(){
     clientTime.animate({arc: [timeFromClient, timeToClient, R.inner]}, 450, ">");
   }
 
-  //_______________ EVENT HANDLERS _________________
+
+  function rotateCircle(angle, circleData){
+    circleData[0].animate({ transform: ['R'+angle+', '+ 300 +', ' + 300] }, 1300, "elastic")  // CircleData[0] -- marks
+    circleData[1].animate({ transform: ['R'+angle+', '+ 300 +', ' + 300, 'r'+ -Math.sign(angle) *  Math.abs(angle)] }, 1300, "elastic") // CircleData[0] -- labels
+  }
+
+  //_______________ UI CONTROLS EVENT HANDLERS _________________
 
   // email field: setting gravatar image if email is changed
   $('input[type="email"]').bind('change', function(){
@@ -97,8 +154,8 @@ $(function(){
 
   // <========================== My Time:
   $('.zoneSelector[name="myTime"]').bind('change', function(){
-    var angle = -($(this).val()) * diffAngleHour;
-    rotateCircle(angle, outerData);
+    myTimeRotateAngle = -($(this).val()) * diffAngleHour;
+    rotateCircle(myTimeRotateAngle, outerData);
   }).trigger('change')
 
   $('input[name="fromMine"').bind('input', function(){
@@ -126,10 +183,5 @@ $(function(){
     timeToClient = $(this).val();
     updateVal()
   })
-
-  function rotateCircle(angle, circleData){
-    circleData[0].animate({ transform: ['R'+angle+', '+ 300 +', ' + 300] }, 1300, "elastic")  // CircleData[0] -- marks
-    circleData[1].animate({ transform: ['R'+angle+', '+ 300 +', ' + 300, 'r'+ -Math.sign(angle) *  Math.abs(angle)] }, 1300, "elastic") // CircleData[0] -- labels
-  }
 
 });
