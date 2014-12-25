@@ -57,7 +57,7 @@ $(function(){
   }
 
   // called each time when knob is moved by user
-  var knobMoved = function (x, y, wayPath, knob) {
+  var knobMoved = function (x, y, wayPath, knob, callback) {
     var totLen    = wayPath.getTotalLength()
     var svgOffset = $('svg').offset(),
     mousePT = {x: x - svgOffset.left, y: y - svgOffset.top }
@@ -67,10 +67,14 @@ $(function(){
     var angle    = (angleMod < 0 ? 360 + angleMod : angleMod) / 360; // in percents (from 0.0 to 1.0) where 1.0 means 360 deg
 
     var dAngle = 1 / 24 / 4; // angle difference between points
-    angle = parseInt(angle / dAngle) * dAngle
+    angle = parseInt(angle / dAngle) * dAngle;
     var knobPos  = wayPath.getPointAtLength( (angle * totLen) % totLen ); // Using angle, find a point along the path
     
     knob.attr({cx: knobPos.x, cy: knobPos.y});
+
+    if(!!callback)
+      callback(angle) 
+    updateVal()
   };
 
   // *****************************
@@ -83,6 +87,7 @@ $(function(){
   var outerData         = drawPoints(R.outer, total, 3, true, myTime); // drawing "Fat" points
                           drawPoints(R.outer, total * 4, 1, false);    // drawing "thin" points
 
+  // creating knobs for worker/my time
   var pMineFrom = createKnob(timeFromMine, R.outer);
   var pMineTo   = createKnob(timeToMine, R.outer);
 
@@ -93,8 +98,25 @@ $(function(){
   // it's being used only as a trajectory, so it should not be visible:
   var myTimePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 300, cy: 300, r: R.outer,}}), 'r90' ) ).hide()
 
+
+  pMineFrom.drag(
+    function(dx, dy, x, y){ 
+      knobMoved(x, y, myTimePath, this, function(angle){
+        timeFromMine = 24 * ((angle + 0.25) % 1 );
+        console.log((angle + 0.25) % 1)
+      }) 
+    }
+  );
+
   // dx, dy - difference between current coordinates and prev. ones; x, y - mouse cursor position
-  pMineTo.drag(function(dx, dy, x, y){ knobMoved(x, y, myTimePath, this) });
+  pMineTo.drag(
+    function(dx, dy, x, y){ 
+      knobMoved(x, y, myTimePath, this, function(angle){
+        timeToMine = 24 * ((angle + 0.25) % 1 );
+        console.log((angle + 0.25) % 1)
+      }) 
+    }
+  );
   // *****************************
   // *********** END *************
   // *****************************
@@ -106,13 +128,46 @@ $(function(){
   // *********************************
   // ****** Inner (Client TIME) ******
   // *********************************
- var timeFromClient        = 8;
- var timeToClient          = 17;
- var clientTime            = r.path().attr(param).attr({arc: [timeFromClient, timeToClient, R.inner]});
- var clientTimeRotateAngle = 0;
- var innerData             = drawPoints(R.inner, total, 3, true, clientTime); // drawing "Fat" points
-                             drawPoints(R.inner, total * 4, 1, false);        // drawing "thin" points
-  
+  var timeFromClient        = 8;
+  var timeToClient          = 17;
+  var clientTime            = r.path().attr(param).attr({arc: [timeFromClient, timeToClient, R.inner]});
+  var clientTimeRotateAngle = 0;
+  var innerData             = drawPoints(R.inner, total, 3, true, clientTime); // drawing "Fat" points
+                              drawPoints(R.inner, total * 4, 1, false);        // drawing "thin" points
+
+  // creating knobs for worker/my time
+  var pClientFrom = createKnob(timeFromClient, R.inner);
+  var pClientTo   = createKnob(timeToClient, R.inner);
+
+  innerData[0].push(pClientFrom);
+  innerData[0].push(pClientTo);
+
+  // circular "way" path used to drive knob controls on it, which could be draggable only within it's shape
+  // it's being used only as a trajectory, so it should not be visible:
+  var clientTimePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 300, cy: 300, r: R.inner,}}), 'r90' ) ).hide()
+
+
+  pClientFrom.drag(
+    function(dx, dy, x, y){ 
+      knobMoved(x, y, clientTimePath, this, function(angle){
+        timeFromClient = 24 * ((angle + 0.25) % 1 );
+        console.log((angle + 0.25) % 1)
+      }) 
+    }
+  );
+
+  // dx, dy - difference between current coordinates and prev. ones; x, y - mouse cursor position
+  pClientTo.drag(
+    function(dx, dy, x, y){ 
+      knobMoved(x, y, clientTimePath, this, function(angle){
+        timeToClient = 24 * ((angle + 0.25) % 1 );
+        console.log((angle + 0.25) % 1)
+      }) 
+    }
+  );
+  // *****************************
+  // *********** END *************
+  // *****************************
 
   function drawPoints(R, total, radius, drawText, handle) {
     var color     = "hsb(".concat(Math.round(R) / 200, ", 1, .75)");
@@ -137,8 +192,8 @@ $(function(){
   }
 
   function updateVal() {
-    myTime.animate({arc: [timeFromMine, timeToMine, R.outer]}, 450, ">");
-    clientTime.animate({arc: [timeFromClient, timeToClient, R.inner]}, 450, ">");
+    myTime.animate({arc: [timeFromMine, timeToMine, R.outer]}, 50, ">");
+    clientTime.animate({arc: [timeFromClient, timeToClient, R.inner]}, 50, ">");
   }
 
 
