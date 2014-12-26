@@ -13,15 +13,26 @@ $(function(){
     $('.zoneSelector').append( $("<option value='" + zoneData[1] + "'>" + zoneData[0] + "</option>") );
   })
 
-  var r       = Raphael("chart", 600, 600),
-    R         = { inner: 190, outer: 250 },
-    param     = { stroke: "#fff", "stroke-width": 8 },
-    hash      = document.location.hash,
-    init      = true,
-    total     = 24;
+  // setting up variables:
+  var r        = Raphael("chart", 600, 600),
+    R          = { inner: 190, outer: 250 },
+    param      = { stroke: "#fff", "stroke-width": 8 },
+    hash       = document.location.hash,
+    init       = true,
+    timeFormat = 12,
+    total      = 24;
 
   var diffAngleHour   = 360 / total;
   var diffAngleQuater = 360 / total / 4;
+
+  var timeFromMine          = 8;
+  var timeToMine            = 17;
+  var myTimeRotateAngle     = 0;
+  var timeFromClient        = 8;
+  var timeToClient          = 17;
+  var clientTimeRotateAngle = 0;
+
+
   r.circle(300, 300, 2) // marking the center of circles
 
 
@@ -77,16 +88,56 @@ $(function(){
     updateVal()
   };
 
+  // saving all params to url hash
+  // w - {..} worker object
+  // c - {..} client object
+  // w: {st, et, z}
+  //    st -- start time
+  //    et -- end time
+  //    z  -- zone
+  //    e  -- email
+  function storeParamsToUrl(){
+    window.location.hash = JSON.stringify({ 
+      w: { st: timeFromMine, et: timeToMine, z: myTimeRotateAngle },
+      c: { st: timeFromClient, et: timeToClient, z: clientTimeRotateAngle },
+      f: timeFormat
+    })
+  }
+
+  function readParamsFromUrl(){
+    params = JSON.parse(window.location.hash.split("#")[1])
+    if(!!params){
+      if(!!params.w){
+        if(!!params.w.st){ timeFromMine = params.w.st }
+        if(!!params.w.et){ timeToMine   = params.w.et }
+        if(!!params.w.z){
+          myTimeRotateAngle = (-params.w.z) / diffAngleHour; 
+          // console.log((-myTimeRotateAngle) / diffAngleHour)
+          $('#myTime select.zoneSelector option[value="' + params.w.z +'"]').attr('selected', true)
+        }
+      }
+      if(!!params.c){
+        if(!!params.c.st){ timeFromClient = params.c.st }
+        if(!!params.c.et){ timeToClient   = params.c.et }
+        if(!!params.c.z){
+          clientTimeRotateAngle = (-params.c.z) / diffAngleHour; 
+          $('#clientTime select.zoneSelector option[value="' + params.c.z +'"]').attr('selected', true)
+        }
+      }
+
+      if(!!params.f){ timeFormat = params.f; }
+    }
+  }
+
+
+  readParamsFromUrl(); // read params before rendering circles, arcs, knobs etc.
+
   // *****************************
   // ****** OUTER (MY TIME) ******
-  // *****************************
-  var timeFromMine      = 8;
-  var timeToMine        = 17;
-  var myTime            = r.path().attr(param).attr({arc: [timeFromMine, timeToMine, R.outer]});
-  var myTimeRotateAngle = 0;
-  var outerData         = drawPoints(R.outer, total, 3, true, myTime); // drawing "Fat" points
-                          drawPoints(R.outer, total * 4, 1, false);    // drawing "thin" points
-
+  // *****************************  
+  var myTime     = r.path().attr(param).attr({arc: [timeFromMine, timeToMine, R.outer]});
+  var outerData  = drawPoints(R.outer, total, 3, true, myTime); // drawing "Fat" points
+                   drawPoints(R.outer, total * 4, 1, false);    // drawing "thin" points
   // creating knobs for worker/my time
   var pMineFrom = createKnob(timeFromMine, R.outer);
   var pMineTo   = createKnob(timeToMine, R.outer);
@@ -116,18 +167,14 @@ $(function(){
   // *****************************
 
 
-
-
   
   // *********************************
   // ****** Inner (Client TIME) ******
   // *********************************
-  var timeFromClient        = 8;
-  var timeToClient          = 17;
-  var clientTime            = r.path().attr(param).attr({arc: [timeFromClient, timeToClient, R.inner]});
-  var clientTimeRotateAngle = 0;
-  var innerData             = drawPoints(R.inner, total, 3, true, clientTime); // drawing "Fat" points
-                              drawPoints(R.inner, total * 4, 1, false);        // drawing "thin" points
+
+  var clientTime = r.path().attr(param).attr({arc: [timeFromClient, timeToClient, R.inner]});
+  var innerData  = drawPoints(R.inner, total, 3, true, clientTime); // drawing "Fat" points
+                   drawPoints(R.inner, total * 4, 1, false);        // drawing "thin" points
 
   // creating knobs for worker/my time
   var pClientFrom = createKnob(timeFromClient, R.inner);
@@ -226,10 +273,12 @@ $(function(){
   });
 
   $('select[name="am_pm_switch"').bind('change', function(){
+    timeFormat = $(this).val()
     drawLabels(outerData, R.outer, total, $(this).val())
     drawLabels(innerData, R.inner, total, $(this).val())
   });
 
+  $('select[name="am_pm_switch"] option[value="' + params.f + '"]').attr('selected', true).parent().trigger('change')
 
   // <========================== My Time:
   $('.zoneSelector[name="myTime"]').bind('change', function(){
@@ -249,8 +298,8 @@ $(function(){
 
   // <========================== Client Time:
   $('.zoneSelector[name="clientTime"]').bind('change', function(){
-    var angle = -($(this).val()) * diffAngleHour;
-    rotateCircle(angle, innerData);
+    clientTimeRotateAngle = -($(this).val()) * diffAngleHour;
+    rotateCircle(clientTimeRotateAngle, innerData);
   }).trigger('change')
 
   var fromClientInput = $('input[name="fromClient"').bind('input', function(){
