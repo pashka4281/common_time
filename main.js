@@ -99,24 +99,18 @@ $(function(){
   var myTimePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 300, cy: 300, r: R.outer,}}), 'r90' ) ).hide()
 
 
-  pMineFrom.drag(
-    function(dx, dy, x, y){ 
-      knobMoved(x, y, myTimePath, this, function(angle){
-        timeFromMine = 24 * ((angle + 0.25) % 1 );
-        console.log((angle + 0.25) % 1)
-      }) 
-    }
-  );
+  pMineFrom.drag(function(dx, dy, x, y){ 
+    knobMoved(x, y, myTimePath, this, function(angle){
+      timeFromMine = 24 * ((angle + 0.25) % 1 );
+    }) 
+  });
 
   // dx, dy - difference between current coordinates and prev. ones; x, y - mouse cursor position
-  pMineTo.drag(
-    function(dx, dy, x, y){ 
-      knobMoved(x, y, myTimePath, this, function(angle){
-        timeToMine = 24 * ((angle + 0.25) % 1 );
-        console.log((angle + 0.25) % 1)
-      }) 
-    }
-  );
+  pMineTo.drag(function(dx, dy, x, y){ 
+    knobMoved(x, y, myTimePath, this, function(angle){
+      timeToMine = 24 * ((angle + 0.25) % 1 );
+    }) 
+  });
   // *****************************
   // *********** END *************
   // *****************************
@@ -147,47 +141,66 @@ $(function(){
   var clientTimePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 300, cy: 300, r: R.inner,}}), 'r90' ) ).hide()
 
 
-  pClientFrom.drag(
-    function(dx, dy, x, y){ 
-      knobMoved(x, y, clientTimePath, this, function(angle){
-        timeFromClient = 24 * ((angle + 0.25) % 1 );
-        console.log((angle + 0.25) % 1)
-      }) 
-    }
-  );
+  pClientFrom.drag(function(dx, dy, x, y){ 
+    knobMoved(x, y, clientTimePath, this, function(angle){
+      timeFromClient = 24 * ((angle + 0.25) % 1 );
+    }) 
+  });
 
   // dx, dy - difference between current coordinates and prev. ones; x, y - mouse cursor position
-  pClientTo.drag(
-    function(dx, dy, x, y){ 
-      knobMoved(x, y, clientTimePath, this, function(angle){
-        timeToClient = 24 * ((angle + 0.25) % 1 );
-        console.log((angle + 0.25) % 1)
-      }) 
-    }
-  );
+  pClientTo.drag(function(dx, dy, x, y){ 
+    knobMoved(x, y, clientTimePath, this, function(angle){
+      timeToClient = 24 * ((angle + 0.25) % 1 );
+    }) 
+  });
   // *****************************
   // *********** END *************
   // *****************************
 
-  function drawPoints(R, total, radius, drawText, handle) {
+  function drawLabels(circleData, R, total, timeFormat){
+    console.log(timeFormat)
+    circleData[1].animate({ opacity: 0 }, 400, ">")
+    for(var i=0; i<total; i++){
+      var alpha = 360 / total * i,
+      a = (90 - alpha) * Math.PI / 180,
+      labelX = 300 + (R + 25) * Math.cos(a),
+      labelY = 300 - (R + 25) * Math.sin(a);
+      var labelTxt = undefined;
+      if(timeFormat === '12')
+        if(i < 13)
+          labelTxt = "" + (i) + ":00 AM";
+        else
+          labelTxt = "" + (i - 12) + ":00 PM";
+      else
+        labelTxt = "" + (i) + ":00";
+
+      circleData[1].push(r.text(labelX, labelY, labelTxt)); 
+    }
+    rotateCircle(myTimeRotateAngle, circleData, 10);
+  }
+
+  function drawPoints(R, total, pointRadius, drawText, handle) {
     var color     = "hsb(".concat(Math.round(R) / 200, ", 1, .75)");
     var marksSet  = r.set();
     var labelsSet = r.set();
-    if(handle)
-      marksSet.push(handle);
+
+    if(handle) marksSet.push(handle);
+
     for (var value = 0; value < total; value++) {
       var alpha = 360 / total * value,
         a = (90 - alpha) * Math.PI / 180,
         x = 300 + R * Math.cos(a),
         y = 300 - R * Math.sin(a);
+      marksSet.push(r.circle(x, y, pointRadius).attr({ fill: "#444", stroke: "none" }).toBack());
+
       if(drawText){
+        // labelsSet = drawLabels(R, total)
         labelX = 300 + (R + 20) * Math.cos(a);
         labelY = 300 - (R + 20) * Math.sin(a);
         labelsSet.push(r.text(labelX, labelY, "" + (value) + ":00"));
       }
-
-      marksSet.push(r.circle(x, y, radius).attr({ fill: "#444", stroke: "none" }).toBack());
     }
+    
     return [marksSet, labelsSet];
   }
 
@@ -197,9 +210,10 @@ $(function(){
   }
 
 
-  function rotateCircle(angle, circleData){
-    circleData[0].animate({ transform: ['R'+angle+', '+ 300 +', ' + 300] }, 1300, "elastic")  // CircleData[0] -- marks
-    circleData[1].animate({ transform: ['R'+angle+', '+ 300 +', ' + 300, 'r'+ -Math.sign(angle) *  Math.abs(angle)] }, 1300, "elastic") // CircleData[0] -- labels
+  function rotateCircle(angle, circleData, animationTime){
+    if(!animationTime) animationTime = 1300;
+    circleData[0].animate({ transform: ['R'+angle+', '+ 300 +', ' + 300] }, animationTime, "elastic")  // CircleData[0] -- marks
+    circleData[1].animate({ transform: ['R'+angle+', '+ 300 +', ' + 300, 'r'+ -Math.sign(angle) *  Math.abs(angle)] }, animationTime, "elastic") // CircleData[0] -- labels
   }
 
   //_______________ UI CONTROLS EVENT HANDLERS _________________
@@ -209,7 +223,12 @@ $(function(){
     var img = $(this).siblings('img')
     var src = !!$(this).val() ? getGravatar($(this).val()) : img.attr('default-src');
     img.attr('src', src )
-  })
+  });
+
+  $('select[name="am_pm_switch"').bind('change', function(){
+    drawLabels(outerData, R.outer, total, $(this).val())
+    drawLabels(innerData, R.inner, total, $(this).val())
+  });
 
 
   // <========================== My Time:
