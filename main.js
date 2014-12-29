@@ -57,6 +57,11 @@ $(function(){
     return { path: path, stroke: color };
   };
 
+  // rounds decimals to 2 numbers after dot
+  function round2(num){
+    return Math.round(num *100) / 100;
+  }
+
   var createKnob = function(timeAt, R){
     var knobInitialCoords = getCircleCoords(timeAt, R);
     var knob = r.circle(knobInitialCoords[0], knobInitialCoords[1], 10).attr({ fill: "rgba(226, 226, 226, 0.14)", cursor: 'pointer' })
@@ -111,17 +116,17 @@ $(function(){
         if(!!params.w.st){ timeFromMine = params.w.st }
         if(!!params.w.et){ timeToMine   = params.w.et }
         if(!!params.w.z){
-          myTimeRotateAngle = (-params.w.z) / diffAngleHour; 
-          // console.log((-myTimeRotateAngle) / diffAngleHour)
-          $('#myTime select.zoneSelector option[value="' + params.w.z +'"]').attr('selected', true)
+          myTimeRotateAngle = params.w.z;
+          // console.log(myTimeRotateAngle)
+          $('#myTime select.zoneSelector option[value="' + ((-params.w.z) / diffAngleHour) +'"]').attr('selected', true)
         }
       }
       if(!!params.c){
         if(!!params.c.st){ timeFromClient = params.c.st }
         if(!!params.c.et){ timeToClient   = params.c.et }
         if(!!params.c.z){
-          clientTimeRotateAngle = (-params.c.z) / diffAngleHour; 
-          $('#clientTime select.zoneSelector option[value="' + params.c.z +'"]').attr('selected', true)
+          clientTimeRotateAngle = params.c.z;
+          $('#clientTime select.zoneSelector option[value="' + ((-params.c.z) / diffAngleHour) +'"]').attr('selected', true)
         }
       }
 
@@ -150,16 +155,18 @@ $(function(){
   var myTimePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 300, cy: 300, r: R.outer,}}), 'r90' ) ).hide()
 
 
-  pMineFrom.drag(function(dx, dy, x, y){ 
+  pMineFrom.drag(function(dx, dy, x, y){
     knobMoved(x, y, myTimePath, this, function(angle){
-      timeFromMine = 24 * ((angle + 0.25) % 1 );
+      timeFromMine = round2( 24 * ((angle + 0.25) % 1 ));
+      storeParamsToUrl();
     }) 
   });
 
   // dx, dy - difference between current coordinates and prev. ones; x, y - mouse cursor position
   pMineTo.drag(function(dx, dy, x, y){ 
     knobMoved(x, y, myTimePath, this, function(angle){
-      timeToMine = 24 * ((angle + 0.25) % 1 );
+      timeToMine = round2( 24 * ((angle + 0.25) % 1 ));
+      storeParamsToUrl();
     }) 
   });
   // *****************************
@@ -190,14 +197,16 @@ $(function(){
 
   pClientFrom.drag(function(dx, dy, x, y){ 
     knobMoved(x, y, clientTimePath, this, function(angle){
-      timeFromClient = 24 * ((angle + 0.25) % 1 );
+      timeFromClient = round2( 24 * ((angle + 0.25) % 1 ));
+      storeParamsToUrl();
     }) 
   });
 
   // dx, dy - difference between current coordinates and prev. ones; x, y - mouse cursor position
   pClientTo.drag(function(dx, dy, x, y){ 
     knobMoved(x, y, clientTimePath, this, function(angle){
-      timeToClient = 24 * ((angle + 0.25) % 1 );
+      timeToClient = round2( 24 * ((angle + 0.25) % 1 ));
+      storeParamsToUrl();
     }) 
   });
   // *****************************
@@ -205,7 +214,6 @@ $(function(){
   // *****************************
 
   function drawLabels(circleData, R, total, timeFormat){
-    console.log(timeFormat)
     circleData[1].animate({ opacity: 0 }, 400, ">")
     for(var i=0; i<total; i++){
       var alpha = 360 / total * i,
@@ -258,6 +266,7 @@ $(function(){
 
 
   function rotateCircle(angle, circleData, animationTime){
+    storeParamsToUrl();
     if(!animationTime) animationTime = 1300;
     circleData[0].animate({ transform: ['R'+angle+', '+ 300 +', ' + 300] }, animationTime, "elastic")  // CircleData[0] -- marks
     circleData[1].animate({ transform: ['R'+angle+', '+ 300 +', ' + 300, 'r'+ -Math.sign(angle) *  Math.abs(angle)] }, animationTime, "elastic") // CircleData[0] -- labels
@@ -267,15 +276,16 @@ $(function(){
 
   // email field: setting gravatar image if email is changed
   $('input[type="email"]').bind('change', function(){
-    var img = $(this).siblings('img')
+    var img = $(this).siblings('img');
     var src = !!$(this).val() ? getGravatar($(this).val()) : img.attr('default-src');
-    img.attr('src', src )
+    img.attr('src', src );
   });
 
   $('select[name="am_pm_switch"').bind('change', function(){
-    timeFormat = $(this).val()
-    drawLabels(outerData, R.outer, total, $(this).val())
-    drawLabels(innerData, R.inner, total, $(this).val())
+    timeFormat = $(this).val();
+    drawLabels(outerData, R.outer, total, $(this).val());
+    drawLabels(innerData, R.inner, total, $(this).val());
+    storeParamsToUrl();
   });
 
   $('select[name="am_pm_switch"] option[value="' + params.f + '"]').attr('selected', true).parent().trigger('change')
@@ -284,27 +294,27 @@ $(function(){
   $('.zoneSelector[name="myTime"]').bind('change', function(){
     myTimeRotateAngle = -($(this).val()) * diffAngleHour;
     rotateCircle(myTimeRotateAngle, outerData);
-  }).trigger('change')
+  }).trigger('change');
 
   $('input[name="fromMine"').bind('input', function(){
     timeFromMine = $(this).val();
-    updateVal()
+    updateVal();
   })
 
   $('input[name="toMine"').bind('input', function(){
     timeToMine = $(this).val();
-    updateVal()
+    updateVal();
   })
 
   // <========================== Client Time:
   $('.zoneSelector[name="clientTime"]').bind('change', function(){
     clientTimeRotateAngle = -($(this).val()) * diffAngleHour;
     rotateCircle(clientTimeRotateAngle, innerData);
-  }).trigger('change')
+  }).trigger('change');
 
   var fromClientInput = $('input[name="fromClient"').bind('input', function(){
     timeFromClient = $(this).val();
-    updateVal()
+    updateVal();
   })
 
   var toClientInput = $('input[name="toClient"').bind('input', function(){
