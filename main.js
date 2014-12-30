@@ -75,15 +75,14 @@ $(function(){
   }
 
   // called each time when knob is moved by user
-  function knobMoved(x, y, wayPath, knob, callback) {
+  function knobMoved(x, y, wayPath, knob, rotateAngle, callback) {
     var totLen    = wayPath.getTotalLength()
     var svgOffset = $('svg').offset(),
     mousePT = {x: x - svgOffset.left, y: y - svgOffset.top }
 
     // performing angle shifting:
-    var angleMod = ( (Raphael.angle( mousePT.x, mousePT.y, 300, 300 ) - myTimeRotateAngle) % 360 )
+    var angleMod = ( (Raphael.angle( mousePT.x, mousePT.y, 300, 300 ) - rotateAngle) % 360 )
     var angle    = (angleMod < 0 ? 360 + angleMod : angleMod) / 360; // in percents (from 0.0 to 1.0) where 1.0 means 360 deg
-
     var dAngle = 1 / 24 / 4; // angle difference between points
     angle = parseInt(angle / dAngle) * dAngle;
     var knobPos  = wayPath.getPointAtLength( (angle * totLen) % totLen ); // Using angle, find a point along the path
@@ -168,7 +167,7 @@ $(function(){
 
 
   pMineFrom.drag(function(dx, dy, x, y){
-    knobMoved(x, y, myTimePath, this, function(angle){
+    knobMoved(x, y, myTimePath, this, myTimeRotateAngle, function(angle){
       timeFromMine = round2( 24 * ((angle + 0.25) % 1 ));
       storeParamsToUrl();
     }) 
@@ -176,7 +175,7 @@ $(function(){
 
   // dx, dy - difference between current coordinates and prev. ones; x, y - mouse cursor position
   pMineTo.drag(function(dx, dy, x, y){ 
-    knobMoved(x, y, myTimePath, this, function(angle){
+    knobMoved(x, y, myTimePath, this, myTimeRotateAngle, function(angle){
       timeToMine = round2( 24 * ((angle + 0.25) % 1 ));
       storeParamsToUrl();
     }) 
@@ -208,7 +207,7 @@ $(function(){
 
 
   pClientFrom.drag(function(dx, dy, x, y){ 
-    knobMoved(x, y, clientTimePath, this, function(angle){
+    knobMoved(x, y, clientTimePath, this, clientTimeRotateAngle, function(angle){
       timeFromClient = round2( 24 * ((angle + 0.25) % 1 ));
       storeParamsToUrl();
     }) 
@@ -216,7 +215,7 @@ $(function(){
 
   // dx, dy - difference between current coordinates and prev. ones; x, y - mouse cursor position
   pClientTo.drag(function(dx, dy, x, y){ 
-    knobMoved(x, y, clientTimePath, this, function(angle){
+    knobMoved(x, y, clientTimePath, this, clientTimeRotateAngle, function(angle){
       timeToClient = round2( 24 * ((angle + 0.25) % 1 ));
       storeParamsToUrl();
     }) 
@@ -313,15 +312,15 @@ $(function(){
     rotateCircle(myTimeRotateAngle, outerData);
   }).trigger('change');
 
-  $('input[name="fromMine"').bind('input', function(){
-    timeFromMine = $(this).val();
-    updateVal();
-  })
+  // $('input[name="fromMine"').bind('input', function(){
+  //   timeFromMine = $(this).val();
+  //   updateVal();
+  // })
 
-  $('input[name="toMine"').bind('input', function(){
-    timeToMine = $(this).val();
-    updateVal();
-  })
+  // $('input[name="toMine"').bind('input', function(){
+  //   timeToMine = $(this).val();
+  //   updateVal();
+  // })
 
   // <========================== Client Time:
   $('.zoneSelector[name="clientTime"]').bind('change', function(){
@@ -329,14 +328,14 @@ $(function(){
     rotateCircle(clientTimeRotateAngle, innerData);
   }).trigger('change');
 
-  var fromClientInput = $('input[name="fromClient"').bind('input', function(){
-    timeFromClient = $(this).val();
-    updateVal();
-  })
+  // var fromClientInput = $('input[name="fromClient"').bind('input', function(){
+  //   timeFromClient = $(this).val();
+  //   updateVal();
+  // })
 
-  var toClientInput = $('input[name="toClient"').bind('input', function(){
-    timeToClient = $(this).val();
-    updateVal()
-  })
+  // var toClientInput = $('input[name="toClient"').bind('input', function(){
+  //   timeToClient = $(this).val();
+  //   updateVal()
+  // })
 
 });
