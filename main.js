@@ -15,7 +15,7 @@ $(function(){
 
   // setting up variables:
   var r        = Raphael("chart", 600, 600),
-    R          = { inner: 190, outer: 250 },
+    R          = { inner: 180, outer: 250 },
     param      = { stroke: "#fff", "stroke-width": 8 },
     hash       = document.location.hash,
     init       = true,
@@ -27,10 +27,12 @@ $(function(){
 
   var timeFromMine          = 8;
   var timeToMine            = 17;
+  var myEmail               = undefined;
   var myTimeRotateAngle     = 0;
   var timeFromClient        = 8;
   var timeToClient          = 17;
   var clientTimeRotateAngle = 0;
+  var clientEmail           = undefined;
 
 
   r.circle(300, 300, 2) // marking the center of circles
@@ -50,7 +52,7 @@ $(function(){
     x1y1 = getCircleCoords(from, R);
     x2y2 = getCircleCoords(to, R);
 
-    var color = "hsb(".concat(Math.round(R) / 200, ",", to / total, ", .75)");
+    var color = "hsb(".concat(Math.round(R) / 200, ",", 0.9, ", .75)");
 
     var alpha1 = diffAngleHour * from, alpha2 = diffAngleHour * to;
     var path = [["M", x1y1[0], x1y1[1]], ["A", R, R, 0, +((alpha2 -alpha1) > 180), 1, x2y2[0], x2y2[1] ]];
@@ -73,7 +75,7 @@ $(function(){
   }
 
   // called each time when knob is moved by user
-  var knobMoved = function (x, y, wayPath, knob, callback) {
+  function knobMoved(x, y, wayPath, knob, callback) {
     var totLen    = wayPath.getTotalLength()
     var svgOffset = $('svg').offset(),
     mousePT = {x: x - svgOffset.left, y: y - svgOffset.top }
@@ -103,8 +105,8 @@ $(function(){
   //    e  -- email
   function storeParamsToUrl(){
     window.location.hash = JSON.stringify({ 
-      w: { st: timeFromMine, et: timeToMine, z: myTimeRotateAngle },
-      c: { st: timeFromClient, et: timeToClient, z: clientTimeRotateAngle },
+      w: { st: timeFromMine, et: timeToMine, z: myTimeRotateAngle, e: myEmail },
+      c: { st: timeFromClient, et: timeToClient, z: clientTimeRotateAngle, e: clientEmail },
       f: timeFormat
     })
   }
@@ -115,6 +117,11 @@ $(function(){
       if(!!params.w){
         if(!!params.w.st){ timeFromMine = params.w.st }
         if(!!params.w.et){ timeToMine   = params.w.et }
+        if(!!params.w.e){
+          myEmail = params.w.e;
+          $('#myTime img').attr( 'src', getGravatar(myEmail) );
+          $('#myTime input[type="email"]').val(myEmail);
+        }
         if(!!params.w.z){
           myTimeRotateAngle = params.w.z;
           // console.log(myTimeRotateAngle)
@@ -124,6 +131,11 @@ $(function(){
       if(!!params.c){
         if(!!params.c.st){ timeFromClient = params.c.st }
         if(!!params.c.et){ timeToClient   = params.c.et }
+        if(!!params.c.e){
+          clientEmail = params.c.e;
+          $('#clientTime img').attr( 'src', getGravatar(clientEmail) );
+          $('#clientTime input[type="email"]').val(clientEmail);
+        }
         if(!!params.c.z){
           clientTimeRotateAngle = params.c.z;
           $('#clientTime select.zoneSelector option[value="' + ((-params.c.z) / diffAngleHour) +'"]').attr('selected', true)
@@ -218,8 +230,8 @@ $(function(){
     for(var i=0; i<total; i++){
       var alpha = 360 / total * i,
       a = (90 - alpha) * Math.PI / 180,
-      labelX = 300 + (R + 25) * Math.cos(a),
-      labelY = 300 - (R + 25) * Math.sin(a);
+      labelX = 300 + (R + 27) * Math.cos(a),
+      labelY = 300 - (R + 27) * Math.sin(a);
       var labelTxt = undefined;
       if(timeFormat === '12')
         if(i < 13)
@@ -275,10 +287,15 @@ $(function(){
   //_______________ UI CONTROLS EVENT HANDLERS _________________
 
   // email field: setting gravatar image if email is changed
-  $('input[type="email"]').bind('change', function(){
+  $('input[type="email"]').bind('change', function(e){
     var img = $(this).siblings('img');
     var src = !!$(this).val() ? getGravatar($(this).val()) : img.attr('default-src');
     img.attr('src', src );
+    if($(e.target).parents('#myTime').length)
+      myEmail = $(this).val();
+    else
+      clientEmail = $(this).val();
+    storeParamsToUrl();
   });
 
   $('select[name="am_pm_switch"').bind('change', function(){
