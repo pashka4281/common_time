@@ -240,7 +240,7 @@ $(function(){
       else
         labelTxt = "" + (i) + ":00";
 
-      circleData[1].push(r.text(labelX, labelY, labelTxt)); 
+      circleData[1].push(r.text(labelX, labelY, labelTxt).attr({ fill: '#8d8d8d' })); 
     }
     rotateCircle(myTimeRotateAngle, circleData, 10);
   }
