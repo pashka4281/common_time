@@ -111,7 +111,7 @@ $(function(){
   }
 
   function readParamsFromUrl(){
-    params = JSON.parse(window.location.hash.split("#")[1])
+    params = !!window.location.hash ? JSON.parse(window.location.hash.split("#")[1]) : false
     if(!!params){
       if(!!params.w){
         if(!!params.w.st){ timeFromMine = params.w.st }
@@ -123,7 +123,6 @@ $(function(){
         }
         if(!!params.w.z){
           myTimeRotateAngle = params.w.z;
-          // console.log(myTimeRotateAngle)
           $('#myTime select.zoneSelector option[value="' + ((-params.w.z) / diffAngleHour) +'"]').attr('selected', true)
         }
       }
