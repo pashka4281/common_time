@@ -304,7 +304,7 @@ $(function(){
     storeParamsToUrl();
   });
 
-  $('select[name="am_pm_switch"] option[value="' + params.f + '"]').attr('selected', true).parent().trigger('change')
+  $('select[name="am_pm_switch"] option[value="' + timeFormat + '"]').attr('selected', true).parent().trigger('change')
 
   // <========================== My Time:
   $('.zoneSelector[name="myTime"]').bind('change', function(){
@@ -312,30 +312,10 @@ $(function(){
     rotateCircle(myTimeRotateAngle, outerData);
   }).trigger('change');
 
-  // $('input[name="fromMine"').bind('input', function(){
-  //   timeFromMine = $(this).val();
-  //   updateVal();
-  // })
-
-  // $('input[name="toMine"').bind('input', function(){
-  //   timeToMine = $(this).val();
-  //   updateVal();
-  // })
-
   // <========================== Client Time:
   $('.zoneSelector[name="clientTime"]').bind('change', function(){
     clientTimeRotateAngle = -($(this).val()) * diffAngleHour;
     rotateCircle(clientTimeRotateAngle, innerData);
   }).trigger('change');
-
-  // var fromClientInput = $('input[name="fromClient"').bind('input', function(){
-  //   timeFromClient = $(this).val();
-  //   updateVal();
-  // })
-
-  // var toClientInput = $('input[name="toClient"').bind('input', function(){
-  //   timeToClient = $(this).val();
-  //   updateVal()
-  // })
 
 });
