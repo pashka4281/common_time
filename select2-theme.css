@@ -34,6 +34,7 @@
   -webkit-box-shadow: none;
   box-shadow: none;
 }
+.select2-search input{ margin-bottom: 4px; }
 
 .select2-drop{
   background-color: #383838;
