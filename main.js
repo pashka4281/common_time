@@ -14,8 +14,8 @@ $(function(){
   })
 
   // setting up variables:
-  var r        = Raphael("chart", 600, 600),
-    R          = { inner: 180, outer: 250 },
+  var r        = Raphael("chart", 500, 500),
+    R          = { inner: 140, outer: 200 },
     param      = { stroke: "#fff", "stroke-width": 8 },
     hash       = document.location.hash,
     init       = true,
@@ -35,27 +35,27 @@ $(function(){
   var clientEmail           = undefined;
 
 
-  r.circle(300, 300, 2) // marking the center of circles
+  r.circle(250, 250, 2) // marking the center of circles
 
 
   function getCircleCoords(angle, R){
     var alpha = diffAngleHour * angle,
       a = (90 - alpha) * Math.PI / 180,
-      x = 300 + R * Math.cos(a),
-      y = 300 - R * Math.sin(a);
+      x = 250 + R * Math.cos(a),
+      y = 250 - R * Math.sin(a);
     return [x, y]
   }
 
   // Custom attribute function
-  r.customAttributes.arc = function(from, to, R) {
+  r.customAttributes.arc = function(from, to, r) {
     // arc start points:
-    x1y1 = getCircleCoords(from, R);
-    x2y2 = getCircleCoords(to, R);
+    x1y1 = getCircleCoords(from, r);
+    x2y2 = getCircleCoords(to, r);
 
-    var color = "hsb(".concat(Math.round(R) / 200, ",", 0.9, ", .75)");
+    var color = r == R.outer ?  "#FEED00" : "#00BE32";
 
     var alpha1 = diffAngleHour * from, alpha2 = diffAngleHour * to;
-    var path = [["M", x1y1[0], x1y1[1]], ["A", R, R, 0, +((alpha2 -alpha1) > 180), 1, x2y2[0], x2y2[1] ]];
+    var path = [["M", x1y1[0], x1y1[1]], ["A", r, r, 0, +((alpha2 -alpha1) > 180), 1, x2y2[0], x2y2[1] ]];
     return { path: path, stroke: color };
   };
 
@@ -81,7 +81,7 @@ $(function(){
     mousePT = {x: x - svgOffset.left, y: y - svgOffset.top }
 
     // performing angle shifting:
-    var angleMod = ( (Raphael.angle( mousePT.x, mousePT.y, 300, 300 ) - rotateAngle) % 360 )
+    var angleMod = ( (Raphael.angle( mousePT.x, mousePT.y, 250, 250 ) - rotateAngle) % 360 )
     var angle    = (angleMod < 0 ? 360 + angleMod : angleMod) / 360; // in percents (from 0.0 to 1.0) where 1.0 means 360 deg
     var dAngle = 1 / 24 / 4; // angle difference between points
     angle = parseInt(angle / dAngle) * dAngle;
@@ -150,7 +150,7 @@ $(function(){
   // *****************************
   // ****** OUTER (MY TIME) ******
   // *****************************  
-  var myTime     = r.path().attr(param).attr({arc: [timeFromMine, timeToMine, R.outer]});
+  var myTime     = r.path().attr(param).attr({arc: [timeFromMine, timeToMine, R.outer]}).toBack();
   var outerData  = drawPoints(R.outer, total, 3, true, myTime); // drawing "Fat" points
                    drawPoints(R.outer, total * 4, 1, false);    // drawing "thin" points
   // creating knobs for worker/my time
@@ -162,7 +162,7 @@ $(function(){
 
   // circular "way" path used to drive knob controls on it, which could be draggable only within it's shape
   // it's being used only as a trajectory, so it should not be visible:
-  var myTimePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 300, cy: 300, r: R.outer,}}), 'r90' ) ).hide()
+  var myTimePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 250, cy: 250, r: R.outer,}}), 'r90' ) ).hide()
 
 
   pMineFrom.drag(function(dx, dy, x, y){
@@ -202,7 +202,7 @@ $(function(){
 
   // circular "way" path used to drive knob controls on it, which could be draggable only within it's shape
   // it's being used only as a trajectory, so it should not be visible:
-  var clientTimePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 300, cy: 300, r: R.inner,}}), 'r90' ) ).hide()
+  var clientTimePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 250, cy: 250, r: R.inner,}}), 'r90' ) ).hide()
 
 
   pClientFrom.drag(function(dx, dy, x, y){ 
@@ -228,8 +228,8 @@ $(function(){
     for(var i=0; i<total; i++){
       var alpha = 360 / total * i,
       a = (90 - alpha) * Math.PI / 180,
-      labelX = 300 + (R + 27) * Math.cos(a),
-      labelY = 300 - (R + 27) * Math.sin(a);
+      labelX = 250 + (R + 24) * Math.cos(a),
+      labelY = 250 - (R + 24) * Math.sin(a);
       var labelTxt = undefined;
       if(timeFormat === '12')
         if(i < 13)
@@ -239,7 +239,7 @@ $(function(){
       else
         labelTxt = "" + (i) + ":00";
 
-      circleData[1].push(r.text(labelX, labelY, labelTxt).attr({ fill: '#8d8d8d' })); 
+      circleData[1].push(r.text(labelX, labelY, labelTxt).attr({ fill: '#8d8d8d', "font-size": 9, "font-family": "Arial, Helvetica, sans-serif" })); 
     }
     rotateCircle(myTimeRotateAngle, circleData, 10);
   }
@@ -254,14 +254,14 @@ $(function(){
     for (var value = 0; value < total; value++) {
       var alpha = 360 / total * value,
         a = (90 - alpha) * Math.PI / 180,
-        x = 300 + R * Math.cos(a),
-        y = 300 - R * Math.sin(a);
-      marksSet.push(r.circle(x, y, pointRadius).attr({ fill: "#444", stroke: "none" }).toBack());
+        x = 250 + R * Math.cos(a),
+        y = 250 - R * Math.sin(a);
+      marksSet.push(r.circle(x, y, pointRadius).attr({ fill: "#444", stroke: "none" }));
 
       if(drawText){
         // labelsSet = drawLabels(R, total)
-        labelX = 300 + (R + 20) * Math.cos(a);
-        labelY = 300 - (R + 20) * Math.sin(a);
+        labelX = 250 + (R + 20) * Math.cos(a);
+        labelY = 250 - (R + 20) * Math.sin(a);
         labelsSet.push(r.text(labelX, labelY, "" + (value) + ":00"));
       }
     }
@@ -278,8 +278,8 @@ $(function(){
   function rotateCircle(angle, circleData, animationTime){
     storeParamsToUrl();
     if(!animationTime) animationTime = 1300;
-    circleData[0].animate({ transform: ['R'+angle+', '+ 300 +', ' + 300] }, animationTime, "elastic")  // CircleData[0] -- marks
-    circleData[1].animate({ transform: ['R'+angle+', '+ 300 +', ' + 300, 'r'+ -Math.sign(angle) *  Math.abs(angle)] }, animationTime, "elastic") // CircleData[0] -- labels
+    circleData[0].animate({ transform: ['R'+angle+', '+ 250 +', ' + 250] }, animationTime, "elastic")  // CircleData[0] -- marks
+    circleData[1].animate({ transform: ['R'+angle+', '+ 250 +', ' + 250, 'r'+ -Math.sign(angle) *  Math.abs(angle)] }, animationTime, "elastic") // CircleData[0] -- labels
   }
 
   //_______________ UI CONTROLS EVENT HANDLERS _________________
