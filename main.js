@@ -25,17 +25,24 @@ $(function(){
   var diffAngleHour   = 360 / total;
   var diffAngleQuater = 360 / total / 4;
 
-  var timeFromMine          = 8;
-  var timeToMine            = 17;
-  var myEmail               = undefined;
-  var myTimeRotateAngle     = 0;
-  var timeFromClient        = 8;
-  var timeToClient          = 17;
-  var clientTimeRotateAngle = 0;
-  var clientEmail           = undefined;
+  // worker and client objects:
+  var worker = {
+    timeFrom: 8
+   ,timeTo: 17
+   ,email: ""
+   ,rotateAngle: 0
+  }
 
+  var client = {
+    timeFrom: 8
+   ,timeTo: 17
+   ,email: ""
+   ,rotateAngle: 0
+  }
 
-  r.circle(250, 250, 2) // marking the center of circles
+  r.text(250, 10, "UTC 0:00").attr({ fill: '#fff', "font-size": 9, "font-family": "Arial, Helvetica, sans-serif" })
+
+  // r.circle(250, 250, 2) // marking the center of circles
 
 
   function getCircleCoords(angle, R){
@@ -66,7 +73,7 @@ $(function(){
 
   var createKnob = function(timeAt, R){
     var knobInitialCoords = getCircleCoords(timeAt, R);
-    var knob = r.circle(knobInitialCoords[0], knobInitialCoords[1], 10).attr({ fill: "rgba(226, 226, 226, 0.14)", cursor: 'pointer' })
+    var knob = r.circle(knobInitialCoords[0], knobInitialCoords[1], 10).attr({ stroke: '#fff', fill: "rgba(226, 226, 226, 0.2)", cursor: 'pointer' })
       .hover(
         function(){ this.animate({fill: "#f00"}, 200, ">") },
         function(){ this.animate({fill: "#fff"}, 200, ">")}
@@ -104,8 +111,8 @@ $(function(){
   //    e  -- email
   function storeParamsToUrl(){
     window.location.hash = JSON.stringify({ 
-      w: { st: timeFromMine, et: timeToMine, z: myTimeRotateAngle, e: myEmail },
-      c: { st: timeFromClient, et: timeToClient, z: clientTimeRotateAngle, e: clientEmail },
+      w: { st: worker.timeFrom, et: worker.timeTo, z: worker.rotateAngle, e: worker.email },
+      c: { st: client.timeFrom, et: client.timeTo, z: client.rotateAngle, e: client.email },
       f: timeFormat
     })
   }
@@ -114,28 +121,28 @@ $(function(){
     params = !!window.location.hash ? JSON.parse(window.location.hash.split("#")[1]) : false
     if(!!params){
       if(!!params.w){
-        if(!!params.w.st){ timeFromMine = params.w.st }
-        if(!!params.w.et){ timeToMine   = params.w.et }
+        if(!!params.w.st){ worker.timeFrom = params.w.st }
+        if(!!params.w.et){ worker.timeTo   = params.w.et }
         if(!!params.w.e){
-          myEmail = params.w.e;
-          $('#myTime img').attr( 'src', getGravatar(myEmail) );
-          $('#myTime input[type="email"]').val(myEmail);
+          worker.email = params.w.e;
+          $('#myTime img').attr( 'src', getGravatar(worker.email) );
+          $('#myTime input[type="email"]').val(worker.email);
         }
         if(!!params.w.z){
-          myTimeRotateAngle = params.w.z;
+          worker.rotateAngle = params.w.z;
           $('#myTime select.zoneSelector option[value="' + ((-params.w.z) / diffAngleHour) +'"]').attr('selected', true)
         }
       }
       if(!!params.c){
-        if(!!params.c.st){ timeFromClient = params.c.st }
-        if(!!params.c.et){ timeToClient   = params.c.et }
+        if(!!params.c.st){ client.timeFrom = params.c.st }
+        if(!!params.c.et){ client.timeTo   = params.c.et }
         if(!!params.c.e){
-          clientEmail = params.c.e;
-          $('#clientTime img').attr( 'src', getGravatar(clientEmail) );
-          $('#clientTime input[type="email"]').val(clientEmail);
+          client.email = params.c.e;
+          $('#clientTime img').attr( 'src', getGravatar(client.email) );
+          $('#clientTime input[type="email"]').val(client.email);
         }
         if(!!params.c.z){
-          clientTimeRotateAngle = params.c.z;
+          client.rotateAngle = params.c.z;
           $('#clientTime select.zoneSelector option[value="' + ((-params.c.z) / diffAngleHour) +'"]').attr('selected', true)
         }
       }
@@ -149,33 +156,33 @@ $(function(){
 
   // *****************************
   // ****** OUTER (MY TIME) ******
-  // *****************************  
-  var myTime     = r.path().attr(param).attr({arc: [timeFromMine, timeToMine, R.outer]}).toBack();
-  var outerData  = drawPoints(R.outer, total, 3, true, myTime); // drawing "Fat" points
+  // *****************************
+  worker.arc = r.path().attr(param).attr({arc: [worker.timeFrom, worker.timeTo, R.outer]}).toBack();
+  worker.arcData  = drawPoints(R.outer, total, 3, true, worker.arc); // drawing "Fat" points
                    drawPoints(R.outer, total * 4, 1, false);    // drawing "thin" points
   // creating knobs for worker/my time
-  var pMineFrom = createKnob(timeFromMine, R.outer);
-  var pMineTo   = createKnob(timeToMine, R.outer);
+  worker.pFrom = createKnob(worker.timeFrom, R.outer);
+  worker.pTo   = createKnob(worker.timeTo, R.outer);
 
-  outerData[0].push(pMineFrom);
-  outerData[0].push(pMineTo);
+  worker.arcData[0].push(worker.pFrom);
+  worker.arcData[0].push(worker.pTo);
 
   // circular "way" path used to drive knob controls on it, which could be draggable only within it's shape
   // it's being used only as a trajectory, so it should not be visible:
-  var myTimePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 250, cy: 250, r: R.outer,}}), 'r90' ) ).hide()
+  worker.timePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 250, cy: 250, r: R.outer,}}), 'r90' ) ).hide()
 
 
-  pMineFrom.drag(function(dx, dy, x, y){
-    knobMoved(x, y, myTimePath, this, myTimeRotateAngle, function(angle){
-      timeFromMine = round2( 24 * ((angle + 0.25) % 1 ));
+  worker.pFrom.drag(function(dx, dy, x, y){
+    knobMoved(x, y, worker.timePath, this, worker.rotateAngle, function(angle){
+      worker.timeFrom = round2( 24 * ((angle + 0.25) % 1 ));
       storeParamsToUrl();
     }) 
   });
 
   // dx, dy - difference between current coordinates and prev. ones; x, y - mouse cursor position
-  pMineTo.drag(function(dx, dy, x, y){ 
-    knobMoved(x, y, myTimePath, this, myTimeRotateAngle, function(angle){
-      timeToMine = round2( 24 * ((angle + 0.25) % 1 ));
+  worker.pTo.drag(function(dx, dy, x, y){ 
+    knobMoved(x, y, worker.timePath, this, worker.rotateAngle, function(angle){
+      worker.timeTo = round2( 24 * ((angle + 0.25) % 1 ));
       storeParamsToUrl();
     }) 
   });
@@ -188,34 +195,33 @@ $(function(){
   // *********************************
   // ****** Inner (Client TIME) ******
   // *********************************
-
-  var clientTime = r.path().attr(param).attr({arc: [timeFromClient, timeToClient, R.inner]});
-  var innerData  = drawPoints(R.inner, total, 3, true, clientTime); // drawing "Fat" points
+  client.arc = r.path().attr(param).attr({arc: [client.timeFrom, client.timeTo, R.inner]});
+  client.arcData  = drawPoints(R.inner, total, 3, true, client.arc); // drawing "Fat" points
                    drawPoints(R.inner, total * 4, 1, false);        // drawing "thin" points
 
   // creating knobs for worker/my time
-  var pClientFrom = createKnob(timeFromClient, R.inner);
-  var pClientTo   = createKnob(timeToClient, R.inner);
+  client.pFrom = createKnob(client.timeFrom, R.inner);
+  client.pTo   = createKnob(client.timeTo, R.inner);
 
-  innerData[0].push(pClientFrom);
-  innerData[0].push(pClientTo);
+  client.arcData[0].push(client.pFrom);
+  client.arcData[0].push(client.pTo);
 
   // circular "way" path used to drive knob controls on it, which could be draggable only within it's shape
   // it's being used only as a trajectory, so it should not be visible:
-  var clientTimePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 250, cy: 250, r: R.inner,}}), 'r90' ) ).hide()
+  client.timePath = r.path( Raphael.transformPath( Raphael._getPath.circle({attrs: {cx: 250, cy: 250, r: R.inner,}}), 'r90' ) ).hide()
 
 
-  pClientFrom.drag(function(dx, dy, x, y){ 
-    knobMoved(x, y, clientTimePath, this, clientTimeRotateAngle, function(angle){
-      timeFromClient = round2( 24 * ((angle + 0.25) % 1 ));
+  client.pFrom.drag(function(dx, dy, x, y){ 
+    knobMoved(x, y, client.timePath, this, client.rotateAngle, function(angle){
+      client.timeFrom = round2( 24 * ((angle + 0.25) % 1 ));
       storeParamsToUrl();
     }) 
   });
 
   // dx, dy - difference between current coordinates and prev. ones; x, y - mouse cursor position
-  pClientTo.drag(function(dx, dy, x, y){ 
-    knobMoved(x, y, clientTimePath, this, clientTimeRotateAngle, function(angle){
-      timeToClient = round2( 24 * ((angle + 0.25) % 1 ));
+  client.pTo.drag(function(dx, dy, x, y){ 
+    knobMoved(x, y, client.timePath, this, client.rotateAngle, function(angle){
+      client.timeTo = round2( 24 * ((angle + 0.25) % 1 ));
       storeParamsToUrl();
     }) 
   });
@@ -241,7 +247,7 @@ $(function(){
 
       circleData[1].push(r.text(labelX, labelY, labelTxt).attr({ fill: '#8d8d8d', "font-size": 9, "font-family": "Arial, Helvetica, sans-serif" })); 
     }
-    rotateCircle(myTimeRotateAngle, circleData, 10);
+    rotateCircle(worker.rotateAngle, circleData, 10);
   }
 
   function drawPoints(R, total, pointRadius, drawText, handle) {
@@ -270,8 +276,8 @@ $(function(){
   }
 
   function updateVal() {
-    myTime.animate({arc: [timeFromMine, timeToMine, R.outer]}, 50, ">");
-    clientTime.animate({arc: [timeFromClient, timeToClient, R.inner]}, 50, ">");
+    worker.arc.animate({arc: [worker.timeFrom, worker.timeTo, R.outer]}, 50, ">");
+    client.arc.animate({arc: [client.timeFrom, client.timeTo, R.inner]}, 50, ">");
   }
 
 
@@ -290,16 +296,16 @@ $(function(){
     var src = !!$(this).val() ? getGravatar($(this).val()) : img.attr('default-src');
     img.attr('src', src );
     if($(e.target).parents('#myTime').length)
-      myEmail = $(this).val();
+      worker.email = $(this).val();
     else
-      clientEmail = $(this).val();
+      client.email = $(this).val();
     storeParamsToUrl();
   });
 
   $('select[name="am_pm_switch"').bind('change', function(){
     timeFormat = $(this).val();
-    drawLabels(outerData, R.outer, total, $(this).val());
-    drawLabels(innerData, R.inner, total, $(this).val());
+    drawLabels(worker.arcData, R.outer, total, $(this).val());
+    drawLabels(client.arcData, R.inner, total, $(this).val());
     storeParamsToUrl();
   });
 
@@ -307,14 +313,14 @@ $(function(){
 
   // <========================== My Time:
   $('.zoneSelector[name="myTime"]').bind('change', function(){
-    myTimeRotateAngle = -($(this).val()) * diffAngleHour;
-    rotateCircle(myTimeRotateAngle, outerData);
-  }).trigger('change');
+    worker.rotateAngle = -($(this).val()) * diffAngleHour;
+    rotateCircle(worker.rotateAngle, worker.arcData);
+  })//.trigger('change');
 
   // <========================== Client Time:
   $('.zoneSelector[name="clientTime"]').bind('change', function(){
-    clientTimeRotateAngle = -($(this).val()) * diffAngleHour;
-    rotateCircle(clientTimeRotateAngle, innerData);
+    client.rotateAngle = -($(this).val()) * diffAngleHour;
+    rotateCircle(client.rotateAngle, client.arcData);
   }).trigger('change');
 
 });
