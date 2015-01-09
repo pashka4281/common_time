@@ -137,7 +137,6 @@ $(function(){
           workerZoneSelector.find('option').removeProp('selected');
           workerZoneSelector.find('option').eq(params.w.z).prop('selected', true);
           workerZoneSelector.trigger('change');
-          // $('#myTime select.zoneSelector option[value="' + ((-params.w.z) / diffAngleHour) +'"]').attr('selected', true)
         }
       }
       if(!!params.c){
@@ -153,7 +152,6 @@ $(function(){
           clientZoneSelector.find('option').removeProp('selected');
           clientZoneSelector.find('option').eq(params.c.z).prop('selected', true);
           clientZoneSelector.trigger('change');
-          // $('#clientTime select.zoneSelector option[value="' + ((-params.c.z) / diffAngleHour) +'"]').attr('selected', true)
         }
       }
 
