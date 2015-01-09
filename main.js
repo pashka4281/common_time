@@ -262,7 +262,6 @@ $(function(){
 
       circleData[1].push(r.text(labelX, labelY, labelTxt).attr({ fill: '#8d8d8d', "font-size": 9, "font-family": "Arial, Helvetica, sans-serif" })); 
     }
-    rotateCircle(worker.rotateAngle, circleData, 10);
   }
 
   function drawPoints(R, total, pointRadius, drawText, handle) {
@@ -320,7 +319,9 @@ $(function(){
   $('select[name="am_pm_switch"').bind('change', function(){
     timeFormat = $(this).val();
     drawLabels(worker.arcData, R.outer, total, $(this).val());
+    rotateCircle(worker.rotateAngle, worker.arcData, 10);
     drawLabels(client.arcData, R.inner, total, $(this).val());
+    rotateCircle(client.rotateAngle, client.arcData, 10);
     storeParamsToUrl();
   });
 
