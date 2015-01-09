@@ -50,6 +50,7 @@ $(function(){
 
 
   function getCircleCoords(angle, R){
+    // console.log(angle)
     var alpha = diffAngleHour * angle,
       a = (90 - alpha) * Math.PI / 180,
       x = 250 + R * Math.cos(a),
@@ -59,14 +60,20 @@ $(function(){
 
   // Custom attribute function
   r.customAttributes.arc = function(from, to, r) {
-    // arc start points:
-    x1y1 = getCircleCoords(from, r);
-    x2y2 = getCircleCoords(to, r);
+    x1y1 = getCircleCoords(from, r); // arc start point
+    x2y2 = getCircleCoords(to, r); // arc end point
 
     var color = r == R.outer ?  "#FEED00" : "#00BE32";
 
-    var alpha1 = diffAngleHour * from, alpha2 = diffAngleHour * to;
-    var path = [["M", x1y1[0], x1y1[1]], ["A", r, r, 0, +((alpha2 -alpha1) > 180), 1, x2y2[0], x2y2[1] ]];
+    direction = undefined;
+
+    if(from < to) 
+      direction = +((to -from) > 12)
+    else{
+      direction = +(from - 12 < to)
+    }
+    
+    var path = [["M", x1y1[0], x1y1[1]], ["A", r, r, 0, direction, 1, x2y2[0], x2y2[1] ]];
     return { path: path, stroke: color };
   };
 
@@ -133,7 +140,7 @@ $(function(){
           $('#myTime input[type="email"]').val(worker.email);
         }
         if(!!params.w.z){
-          worker.rotateAngle = params.w.z;
+          // worker.rotateAngle = params.w.z;
           workerZoneSelector.find('option').removeProp('selected');
           workerZoneSelector.find('option').eq(params.w.z).prop('selected', true);
           workerZoneSelector.trigger('change');
@@ -148,7 +155,7 @@ $(function(){
           $('#clientTime input[type="email"]').val(client.email);
         }
         if(!!params.c.z){
-          client.rotateAngle = params.c.z;
+          // client.rotateAngle = params.c.z;
           clientZoneSelector.find('option').removeProp('selected');
           clientZoneSelector.find('option').eq(params.c.z).prop('selected', true);
           clientZoneSelector.trigger('change');
@@ -284,8 +291,8 @@ $(function(){
   }
 
   function updateVal() {
-    worker.arc.animate({arc: [worker.timeFrom, worker.timeTo, R.outer]}, 50, ">");
-    client.arc.animate({arc: [client.timeFrom, client.timeTo, R.inner]}, 50, ">");
+    worker.arc.attr({arc: [worker.timeFrom, worker.timeTo, R.outer]});
+    client.arc.attr({arc: [client.timeFrom, client.timeTo, R.inner]});
   }
 
 
