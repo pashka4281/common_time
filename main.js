@@ -10,7 +10,7 @@ $(function(){
 
   // Setting options for timeZone selectors (keeping list here in js no prevent polluting html with huge duplicate lists of options)
   $(timeZones).each(function(i, zoneData){
-    $('.zoneSelector').append( $("<option value='" + zoneData[1] + "'>" + zoneData[0] + "</option>") );
+    $('.zoneSelector').append( $("<option value='" + i + "' offset='" + zoneData[1] + "'>" + zoneData[0] + "</option>") );
   })
 
   // setting up variables:
@@ -33,12 +33,16 @@ $(function(){
    ,rotateAngle: 0
   }
 
+  var workerZoneSelector = $('#myTime select.zoneSelector');
+
   var client = {
     timeFrom: 8
    ,timeTo: 17
    ,email: ""
    ,rotateAngle: 0
   }
+
+  var clientZoneSelector = $('#clientTime select.zoneSelector');
 
   r.text(250, 10, "UTC 0:00").attr({ fill: '#fff', "font-size": 9, "font-family": "Arial, Helvetica, sans-serif" })
 
@@ -111,8 +115,8 @@ $(function(){
   //    e  -- email
   function storeParamsToUrl(){
     window.location.hash = JSON.stringify({ 
-      w: { st: worker.timeFrom, et: worker.timeTo, z: worker.rotateAngle, e: worker.email },
-      c: { st: client.timeFrom, et: client.timeTo, z: client.rotateAngle, e: client.email },
+      w: { st: worker.timeFrom, et: worker.timeTo, z: workerZoneSelector.find('option:selected').index(), e: worker.email },
+      c: { st: client.timeFrom, et: client.timeTo, z: clientZoneSelector.find('option:selected').index(), e: client.email },
       f: timeFormat
     })
   }
@@ -130,7 +134,10 @@ $(function(){
         }
         if(!!params.w.z){
           worker.rotateAngle = params.w.z;
-          $('#myTime select.zoneSelector option[value="' + ((-params.w.z) / diffAngleHour) +'"]').attr('selected', true)
+          workerZoneSelector.find('option').removeProp('selected');
+          workerZoneSelector.find('option').eq(params.w.z).prop('selected', true);
+          workerZoneSelector.trigger('change');
+          // $('#myTime select.zoneSelector option[value="' + ((-params.w.z) / diffAngleHour) +'"]').attr('selected', true)
         }
       }
       if(!!params.c){
@@ -143,7 +150,10 @@ $(function(){
         }
         if(!!params.c.z){
           client.rotateAngle = params.c.z;
-          $('#clientTime select.zoneSelector option[value="' + ((-params.c.z) / diffAngleHour) +'"]').attr('selected', true)
+          clientZoneSelector.find('option').removeProp('selected');
+          clientZoneSelector.find('option').eq(params.c.z).prop('selected', true);
+          clientZoneSelector.trigger('change');
+          // $('#clientTime select.zoneSelector option[value="' + ((-params.c.z) / diffAngleHour) +'"]').attr('selected', true)
         }
       }
 
@@ -313,13 +323,13 @@ $(function(){
 
   // <========================== My Time:
   $('.zoneSelector[name="myTime"]').bind('change', function(){
-    worker.rotateAngle = -($(this).val()) * diffAngleHour;
+    worker.rotateAngle = -($(this).find('option:selected').attr('offset')) * diffAngleHour;
     rotateCircle(worker.rotateAngle, worker.arcData);
-  })//.trigger('change');
+  }).trigger('change');
 
   // <========================== Client Time:
   $('.zoneSelector[name="clientTime"]').bind('change', function(){
-    client.rotateAngle = -($(this).val()) * diffAngleHour;
+    client.rotateAngle = -($(this).find('option:selected').attr('offset')) * diffAngleHour;
     rotateCircle(client.rotateAngle, client.arcData);
   }).trigger('change');
 
