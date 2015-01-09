@@ -15,4 +15,7 @@ You'll be able to see where your working hours overlaps and share it with each o
 
 Time format is an option as well (12/24 hours)
 
-https://pashka4281.github.io/common_time
+https://commontime.info
+
+
+![img](http://gdurl.com/e7H1)
